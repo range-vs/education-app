@@ -1,11 +1,35 @@
 package sample;
 
+import database.ConnectionPostgres;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
+import javafx.concurrent.Worker;
+import javafx.embed.swing.SwingFXUtils;
 import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
+import javafx.geometry.Insets;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.FlowPane;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
 import javafx.stage.Stage;
+import task.Task;
+import task.TaskComparator;
+
+import javax.imageio.ImageIO;
+import java.io.File;
+import java.io.IOException;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.*;
 
 public class TaskController {
 
@@ -15,61 +39,30 @@ public class TaskController {
     private BorderPane startForm;
     @FXML
     private BorderPane centerForm;
+    @FXML
+    private FlowPane flowPaneButtons;
+    @FXML
+    private Button FurtherBtn;
+    @FXML
+    private ImageView imageViewThemes;
 
     private Stage _this;
     private WebEngine mainWebEngine;
+    private List<Task> tasks;
+    private int currentTask;
+    private int isLoad;
+
 
     @FXML
     public void initialize(){
         mainWebEngine = webViewMain.getEngine();
-        String info = "<!DOCTYPE html>" +
-                "<html>" +
-                "<head>" +
-                "<title></title>" +
-                "</head>" +
-                "<body>" +
-                "<h1>Что такое JavaScript?</h1>" +
-                "JavaScript изначально создавался для того, чтобы сделать web-странички «живыми». Программы на этом языке называются скриптами. В браузере они подключаются напрямую к HTML и, как только<br> загружается страничка – тут же выполняются.<br>" +
-                "<br>" +
-                "Программы на JavaScript – обычный текст. Они не требуют какой-то специальной подготовки.<br>" +
-                "В этом плане JavaScript сильно отличается от другого языка, который называется Java.<br>" +
-                "<br><br>" +
-                "<h1>Почему JavaScript?</h1>" +
-                "Когда создавался язык JavaScript, у него изначально было другое название: «LiveScript». Но тогда был очень популярен язык Java, и маркетологи решили, что схожее название сделает новый язык <br>более популярным.<br>" +
-                "<br>" +
-                "Планировалось, что JavaScript будет эдаким «младшим братом» Java. Однако, история распорядилась по-своему, JavaScript сильно вырос, и сейчас это совершенно независимый язык, со своей <br>спецификацией, которая называется ECMAScript, и к Java не имеет никакого отношения.<br>" +
-                "<br>" +
-                "У него много особенностей, которые усложняют освоение, но по ходу учебника мы с ними разберёмся.<br>" +
-                "<br>" +
-                "JavaScript может выполняться не только в браузере, а где угодно, нужна лишь специальная программа – интерпретатор. Процесс выполнения скрипта называют «интерпретацией».<br>" +
-                "<br>" +
-                "<h1>Компиляция и интерпретация, для программистов</h1>" +
-                "Для выполнения программ, не важно на каком языке, существуют два способа: «компиляция» и «интерпретация».<br>" +
-                "<br>" +
-                "Компиляция – это когда исходный код программы, при помощи специального инструмента, другой программы, которая называется «компилятор», преобразуется в другой язык, как правило – в машинный <br>код. Этот машинный код затем распространяется и запускается. При этом исходный код программы остаётся у разработчика.<br>" +
-                "Интерпретация – это когда исходный код программы получает другой инструмент, который называют «интерпретатор», и выполняет его «как есть». При этом распространяется именно сам исходный код<br> (скрипт). Этот подход применяется в браузерах для JavaScript.<br>" +
-                "Современные интерпретаторы перед выполнением преобразуют JavaScript в машинный код или близко к нему, оптимизируют, а уже затем выполняют. И даже во время выполнения стараются <br>оптимизировать. Поэтому JavaScript работает очень быстро.<br>" +
-                "<br>" +
-                "Во все основные браузеры встроен интерпретатор JavaScript, именно поэтому они могут выполнять скрипты на странице. Но, разумеется, JavaScript можно использовать не только в браузере. Это <br>полноценный язык, программы на котором можно запускать и на сервере, и даже в стиральной машинке, если в ней установлен соответствующий интерпретатор.<br>" +
-                "<br>" +
-                "" +
-                "<h1>Что умеет JavaScript?</h1>" +
-                "Современный JavaScript – это «безопасный» язык программирования общего назначения. Он не предоставляет низкоуровневых средств работы с памятью, процессором, так как изначально был <br>ориентирован на браузеры, в которых это не требуется.<br>" +
-                "<br>" +
-                "Что же касается остальных возможностей – они зависят от окружения, в котором запущен JavaScript. В браузере JavaScript умеет делать всё, что относится к манипуляции со страницей, <br>взаимодействию с посетителем и, в какой-то мере, с сервером:<br>" +
-                "<br><ul>" +
-                "<li>Создавать новые HTML-теги, удалять существующие, менять стили элементов, прятать, показывать элементы и т.п.<br></li>" +
-                "<li>Реагировать на действия посетителя, обрабатывать клики мыши, перемещения курсора, нажатия на клавиатуру и т.п.<br></li>" +
-                "<li>Посылать запросы на сервер и загружать данные без перезагрузки страницы (эта технология называется \"AJAX\").<br></li>" +
-                "<li>Получать и устанавливать cookie, запрашивать данные, выводить сообщения…<br></li>" +
-                "<li>…и многое, многое другое!<br></li>" +
-                "</ul>" +
-                "<br>" +
-                "Теперь, когда Вы получили основную информацию о Java Script, перейдём непосредственно к изучению языка!<br>" +
-                "Для продолжения нажмите \"Вперёд\".<br>" +
-                "</body>" +
-                "</html>";
-        mainWebEngine.loadContent(info);
+        initImage();
+        tasks = new ArrayList<>();
+        currentTask = -1;
+    }
+
+    private void initImage(){
+        imageViewThemes.setImage(new Image(getClass().getResource("static/logo.png").toExternalForm()));
     }
 
     public void closeWindow(ActionEvent actionEvent) {
@@ -80,13 +73,198 @@ public class TaskController {
         _this = st;
     }
 
+    public void initButtons(int idLanguage) throws SQLException {
+        Statement st = ConnectionPostgres.getInstance().getConnection().createStatement();
+        ResultSet rs = st.executeQuery("SELECT id, name FROM themes WHERE id_languages = " + idLanguage + ";");
+        while (rs.next()) {
+            Statement st_themes = ConnectionPostgres.getInstance().getConnection().createStatement();
+            ResultSet rs_themes = st_themes.executeQuery("SELECT number, task, type FROM tasks WHERE id_theme = " + rs.getBigDecimal(1) + ";");
+            Button btn = new Button(rs.getString(2));
+            flowPaneButtons.getChildren().add(btn);
+            btn.setMnemonicParsing(false);
+            FlowPane.setMargin(btn, new Insets(20, 0, 0, 20));
+            btn.setDisable(true);
+            boolean isDisable = true;
+            while(rs_themes.next()) {
+                isDisable = false;
+                StringBuffer content = new StringBuffer(rs_themes.getString(2));
+                Statement st_img = ConnectionPostgres.getInstance().getConnection().createStatement();
+                int id = rs_themes.getBigDecimal(1).intValue();
+                ResultSet rs_img = st_img.executeQuery("SELECT img, img_path, img_name FROM images WHERE id_task = " + id + ";");
+                int index = 1;
+                while(rs_img.next()) {
+                    String path = rs_img.getString(2);
+                    String name = rs_img.getString(3);
+                    File catalog = new File(path);
+                    if(!catalog.exists()){
+                        if(!catalog.mkdirs()){
+                            System.out.println("Аварийная ошибка!");
+                            return;
+                        }
+                    }
+                    File file = new File(path + name);
+                    System.out.println(file.getAbsolutePath()); // debug
+                    if(!file.exists()){
+                        Image img = new Image(rs_img.getBinaryStream(1));
+                        String format = "PNG";
+                        File f = new File(path + name);
+                        System.out.println(f.getAbsolutePath()); // debug
+                        try {
+                            ImageIO.write(SwingFXUtils.fromFXImage(img, null), format, f);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                        System.out.println(f.toURI()); // debug
+                        file = f;
+                    }
+                    String findLine = "<img id=\"img" + index++ + "\" ";
+                    int pos = content.indexOf(findLine);
+                    content = content.insert(pos + findLine.length() + 5, file.toURI());
+                }
+                tasks.add(new Task(rs_themes.getBigDecimal(1).intValue(), content.toString(), rs_themes.getBigDecimal(3).intValue()));
+                rs_img.close();
+                st_img.close();
+            }
+            if(!isDisable){
+                btn.setOnAction(actionEvent -> openTasks(actionEvent));
+                btn.setDisable(false);
+            }
+            btn.setUserData(rs.getBigDecimal(1));
+            rs_themes.close();
+            st_themes.close();
+        }
+        tasks.sort(new TaskComparator());
+        currentTask = 0;
+        mainWebEngine.setJavaScriptEnabled(true);
+        isLoad = -1;
+        initListeners();
+        rs.close();
+        st.close();
+    }
+
+    private void initListeners(){
+        webViewMain.addEventFilter(ScrollEvent.ANY, new EventHandler<ScrollEvent>() {
+            @Override
+            public void handle(ScrollEvent scrollEvent) {
+                checkScroll();
+            }
+        });
+        webViewMain.setOnMouseClicked(new EventHandler<MouseEvent>() {
+            @Override
+            public void handle(MouseEvent event) {
+                checkScroll();
+            }
+        });
+        webViewMain.setOnMouseDragged(new EventHandler<MouseEvent>() {
+            @Override
+            public void handle(MouseEvent event) {
+                checkScroll();
+            }
+        });
+        mainWebEngine.getLoadWorker().stateProperty().addListener(new ChangeListener<Worker.State>() {
+            @Override
+            public void changed(ObservableValue<? extends Worker.State> observable, Worker.State oldValue, Worker.State newValue) {
+                if (newValue == Worker.State.SUCCEEDED) {
+                    System.out.println("Page is loaded");
+                    isLoad = 1;
+                    checkScroll();
+                }
+            }
+        });
+    }
+
     public void openTasks(ActionEvent actionEvent) {
         startForm.setVisible(false);
         centerForm.setVisible(true);
+        replaceTask(currentTask);
     }
 
     public void clickBack(ActionEvent actionEvent) {
-        startForm.setVisible(true);
-        centerForm.setVisible(false);
+        if(currentTask - 1 >= 0) {
+            currentTask--;
+            replaceTask(currentTask);
+        }
+        else {
+            startForm.setVisible(true);
+            centerForm.setVisible(false);
+        }
     }
+
+    public void clickFurther(ActionEvent actionEvent) {
+        if(FurtherBtn.getText().equals("Проверить")){
+            if(!checkTask()){ // сначала надо верно ответить на вопрос(-ы)
+                return;
+            }
+        }
+        if(currentTask + 1 != tasks.size()) {
+            currentTask++;
+            replaceTask(currentTask);
+        }
+    }
+
+    private void replaceTask(int index){
+        if(tasks.get(index).getType() == 1){
+            FurtherBtn.setText("Далее");
+        }else if(tasks.get(index).getType() == 2){
+            FurtherBtn.setText("Проверить");
+        }
+        mainWebEngine.loadContent(tasks.get(index).getTask());
+        FurtherBtn.setDisable(true);
+    }
+
+    private void checkScroll(){
+        /*Set<Node> scrollBars = webViewMain.lookupAll(".scroll-bar");
+        for (Node node : scrollBars) {
+            if (node instanceof ScrollBar) {
+                ScrollBar sBar = (ScrollBar) node;
+                if (sBar.getOrientation().equals(Orientation.VERTICAL)) {
+                    if (sBar.getMax() - sBar.getValue() < 0.001 || sBar.getVisibleAmount() != 0) {
+                        FurtherBtn.setDisable(false);
+                    } else {
+                        FurtherBtn.setDisable(true);
+                    }
+                }
+            }
+        }*/
+        while(isLoad != 1){
+            try {
+                Thread.sleep(150);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+        Boolean result = (Boolean) mainWebEngine.executeScript("getResult();");
+        if(result){
+            FurtherBtn.setDisable(false);
+        } else {
+            FurtherBtn.setDisable(true);
+        }
+    }
+
+    private boolean checkTask(){
+        while(isLoad != 1){
+            try {
+                Thread.sleep(150);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+        Boolean result = (Boolean) mainWebEngine.executeScript("check();");
+        Alert alert = null;
+        if(result){
+            alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setContentText("Вы ввели верный ответ!");
+            alert.setHeaderText("Успех");
+            System.out.println("Верно");
+        } else {
+            alert = new Alert(Alert.AlertType.ERROR);
+            alert.setContentText("Вы ввели не верный ответ!");
+            alert.setHeaderText("Ошибка");
+            System.out.println("Не верно");
+        }
+        alert.setTitle("Сообщение");
+        alert.showAndWait();
+        return result;
+    }
+
 }

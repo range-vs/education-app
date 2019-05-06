@@ -3,9 +3,13 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.FlowPane?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.StackPane?>
-<?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 <?import javafx.scene.web.WebView?>
 
@@ -18,14 +22,14 @@
          <bottom>
             <BorderPane prefHeight="37.0" prefWidth="600.0" BorderPane.alignment="CENTER">
                <left>
-                  <Button mnemonicParsing="false" text="Назад" BorderPane.alignment="CENTER" onAction="#clickBack">
+                  <Button mnemonicParsing="false" onAction="#clickBack" text="Назад" BorderPane.alignment="CENTER">
                      <BorderPane.margin>
                         <Insets left="10.0" />
                      </BorderPane.margin>
                   </Button>
                </left>
                <right>
-                  <Button disable="true" mnemonicParsing="false" text="Вперёд" BorderPane.alignment="CENTER">
+                  <Button fx:id="FurtherBtn" disable="false" mnemonicParsing="false" onAction="#clickFurther" text="Далее" BorderPane.alignment="CENTER">
                      <BorderPane.margin>
                         <Insets right="10.0" />
                      </BorderPane.margin>
@@ -33,7 +37,7 @@
                </right>
             </BorderPane>
          </bottom></BorderPane>
-      <BorderPane fx:id="startForm" prefHeight="200.0" prefWidth="200.0">
+      <BorderPane fx:id="startForm" prefHeight="200.0" prefWidth="200.0" style="-fx-background-color: white;">
          <top>
             <Label text="Пожалуйста, выберите тему для изучения:" wrapText="true" BorderPane.alignment="CENTER">
                <font>
@@ -41,17 +45,6 @@
                </font>
             </Label>
          </top>
-         <center>
-            <VBox prefHeight="200.0" prefWidth="100.0" BorderPane.alignment="CENTER">
-               <children>
-                  <Button mnemonicParsing="false" onAction="#openTasks" text="Базовый курс">
-                     <VBox.margin>
-                        <Insets left="20.0" top="20.0" />
-                     </VBox.margin>
-                  </Button>
-               </children>
-            </VBox>
-         </center>
          <bottom>
             <Button mnemonicParsing="false" onAction="#closeWindow" text="Назад" BorderPane.alignment="TOP_LEFT">
                <BorderPane.margin>
@@ -59,6 +52,21 @@
                </BorderPane.margin>
             </Button>
          </bottom>
+         <center>
+            <GridPane BorderPane.alignment="CENTER">
+              <columnConstraints>
+                <ColumnConstraints hgrow="SOMETIMES" maxWidth="349.0" minWidth="349.0" prefWidth="349.0" />
+                <ColumnConstraints hgrow="SOMETIMES" maxWidth="295.0" minWidth="10.0" prefWidth="251.0" />
+              </columnConstraints>
+              <rowConstraints>
+                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+              </rowConstraints>
+               <children>
+                  <FlowPane fx:id="flowPaneButtons" orientation="VERTICAL" prefHeight="333.0" prefWidth="388.0" />
+                  <ImageView fx:id="imageViewThemes" fitHeight="175.0" fitWidth="248.0" pickOnBounds="true" preserveRatio="true" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.valignment="TOP" />
+               </children>
+            </GridPane>
+         </center>
       </BorderPane>
    </children>
 </StackPane>
