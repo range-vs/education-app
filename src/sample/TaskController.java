@@ -78,7 +78,7 @@ public class TaskController {
         ResultSet rs = st.executeQuery("SELECT id, name FROM themes WHERE id_languages = " + idLanguage + ";");
         while (rs.next()) {
             Statement st_themes = ConnectionPostgres.getInstance().getConnection().createStatement();
-            ResultSet rs_themes = st_themes.executeQuery("SELECT number, task, type FROM tasks WHERE id_theme = " + rs.getBigDecimal(1) + ";");
+            ResultSet rs_themes = st_themes.executeQuery("SELECT id, number, task, type FROM tasks WHERE id_theme = " + rs.getBigDecimal(1) + ";");
             Button btn = new Button(rs.getString(2));
             flowPaneButtons.getChildren().add(btn);
             btn.setMnemonicParsing(false);
@@ -87,7 +87,7 @@ public class TaskController {
             boolean isDisable = true;
             while(rs_themes.next()) {
                 isDisable = false;
-                StringBuffer content = new StringBuffer(rs_themes.getString(2));
+                StringBuffer content = new StringBuffer(rs_themes.getString(3));
                 Statement st_img = ConnectionPostgres.getInstance().getConnection().createStatement();
                 int id = rs_themes.getBigDecimal(1).intValue();
                 ResultSet rs_img = st_img.executeQuery("SELECT img, img_path, img_name FROM images WHERE id_task = " + id + ";");
@@ -121,7 +121,7 @@ public class TaskController {
                     int pos = content.indexOf(findLine);
                     content = content.insert(pos + findLine.length() + 5, file.toURI());
                 }
-                tasks.add(new Task(rs_themes.getBigDecimal(1).intValue(), content.toString(), rs_themes.getBigDecimal(3).intValue()));
+                tasks.add(new Task(rs_themes.getBigDecimal(2).intValue(), content.toString(), rs_themes.getBigDecimal(4).intValue()));
                 rs_img.close();
                 st_img.close();
             }
@@ -191,14 +191,20 @@ public class TaskController {
     }
 
     public void clickFurther(ActionEvent actionEvent) {
-        if(FurtherBtn.getText().equals("Проверить")){
+        if(FurtherBtn.getText().equals("Завершить")){
+            startForm.setVisible(true);
+            centerForm.setVisible(false);
+            currentTask = 0;
+        }
+        else if(FurtherBtn.getText().equals("Проверить")){
             if(!checkTask()){ // сначала надо верно ответить на вопрос(-ы)
                 return;
             }
         }
-        if(currentTask + 1 != tasks.size()) {
-            currentTask++;
-            replaceTask(currentTask);
+        currentTask++;
+        replaceTask(currentTask);
+        if(currentTask == tasks.size() - 1){
+            FurtherBtn.setText("Завершить");
         }
     }
 
@@ -253,12 +259,12 @@ public class TaskController {
         Alert alert = null;
         if(result){
             alert = new Alert(Alert.AlertType.INFORMATION);
-            alert.setContentText("Вы ввели верный ответ!");
+            alert.setContentText("Вы указали верный ответ(-ы)!");
             alert.setHeaderText("Успех");
             System.out.println("Верно");
         } else {
             alert = new Alert(Alert.AlertType.ERROR);
-            alert.setContentText("Вы ввели не верный ответ!");
+            alert.setContentText("Вы указали не верный ответ(-ы)!");
             alert.setHeaderText("Ошибка");
             System.out.println("Не верно");
         }
